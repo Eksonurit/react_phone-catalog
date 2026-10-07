@@ -12,6 +12,15 @@
   padding: 16px;
   border: 1px solid $elements;
 
+  background-color: $white;
+
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+
+  &:hover {
+    border-color: rgb(49 50 55 / 25%);
+    box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+  }
+
   @include tablet {
     flex-direction: row;
   }
@@ -29,16 +38,31 @@
 }
 
 .cross {
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   border: 0;
-  background-color: $white;
-  transition: 0.5s;
+
   color: $icons;
 
+  background-color: transparent;
+
+  transition: transform 0.2s ease;
+
   &:hover {
+    transform: scale(1.15);
+
     svg path {
       fill: $primary-color;
-      transition: 0.5s;
+      transition: fill 0.2s ease;
     }
+  }
+
+  &:active {
+    transform: scale(0.9);
   }
 }
 
@@ -52,6 +76,11 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.05);
   }
 }
 
@@ -95,21 +124,44 @@
 }
 
 .quantity-button {
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   box-sizing: border-box;
   width: 32px;
   height: 32px;
-  color: $primary-color;
   border: 1px solid $icons;
-  transition-duration: 0.5s;
+
+  color: $primary-color;
 
   background-color: $white;
-  /* stylelint-disable-next-line no-descending-specificity */
+
+  transition: border-color 0.2s ease,
+              background-color 0.2s ease,
+              transform 0.15s ease;
 
   &:disabled {
+    pointer-events: none;
+    cursor: not-allowed;
+
     border: 1px solid $elements;
-  /* stylelint-disable-next-line no-descending-specificity */
+
     color: $icons;
-    transition-duration: 0.5s;
+
+    opacity: 0.5;
+  }
+
+  &:hover:not(:disabled) {
+    transform: scale(1.08);
+    border-color: $primary-color;
+    background-color: $hover;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.92);
   }
 }
 
@@ -124,3 +176,4 @@
     width: 80px;
   }
 }
+

@@ -1,18 +1,17 @@
 import { AccessoriesModel, PhoneModel, TabletModel } from '../../types/model';
 import favoritesNonActive from '../../Icons/Favourites(HeartLike).svg';
-
 import styles from './ModelCard.module.scss';
 import cn from 'classnames';
 import { Link, useLocation } from 'react-router-dom';
 import { Product } from '../../types/products';
 import { useContext, useEffect, useMemo, useState } from 'react';
-// eslint-disable-next-line max-len
-import { FavoritesContext } from '../../contexts/FavoritesContext/FavoritesContext';
-import { getProducts } from '../../api';
-import favoritesActive from '../../Icons/FavouritesFilled(HeartLike).svg';
+import { FavoritesContext } from '../../contexts/FavoritesContext';
 import { CartContext } from '../../contexts/CartContext';
+import { ProductsContext } from '../../contexts/ProductsContext';
+import favoritesActive from '../../Icons/FavouritesFilled(HeartLike).svg';
 import { convertToCartItem } from '../../utils/convertToCartItem';
 import { PrimaryButton } from '../PrimaryButton';
+
 interface ModelCardProps {
   model: PhoneModel | AccessoriesModel | Product;
   hotPrice: boolean;
@@ -31,18 +30,16 @@ export const ModelCard: React.FC<ModelCardProps> = ({
   const [toLinkCategory, setToLinkCategory] = useState<string>(kindOfModel);
   const { favorites, setFavorites } = useContext(FavoritesContext);
   const { cartProducts, setCartProducts } = useContext(CartContext);
+  const { products } = useContext(ProductsContext);
 
-  const [products, setProducts] = useState<Product[]>([]);
+  const product = useMemo(() => {
+    if ('itemId' in model && model.itemId) {
+      return model as Product;
+    }
 
-  useEffect(() => {
-    const productData = getProducts();
+    return products.find(p => p.itemId === id);
+  }, [model, products, id]);
 
-    productData.then(product => {
-      setProducts(product);
-    });
-  }, []);
-
-  const product = products.find(p => p.itemId === id);
   const isFavorite = useMemo(() => {
     return favorites.some(fav => fav.itemId === product?.itemId);
   }, [favorites, product?.itemId]);
@@ -148,14 +145,18 @@ export const ModelCard: React.FC<ModelCardProps> = ({
           height="40"
         ></PrimaryButton>
         <button
-          className={`${styles['add--to__fovourites']} ${styles['model-button']}`}
+          className={`${styles['add-to-favourites']} ${styles['model-button']}`}
           onClick={handleToggleFavorite}
+          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
           {isFavorite ? (
             <img
               src={favoritesActive}
               alt="favoritesActive"
-              className={styles.favorite__img}
+              className={cn(
+                styles.favorite__img,
+                styles['favorite__img--active'],
+              )}
             />
           ) : (
             <img

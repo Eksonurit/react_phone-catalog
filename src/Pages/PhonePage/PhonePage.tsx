@@ -6,16 +6,15 @@ import { getPhones } from '../../api';
 import { applyPagination } from '../../utils/applyPagination';
 import { modelsSortAsync } from '../../utils/filterByModel';
 import { PageTop } from '../../components/PageTop';
-import Loader from '../../components/Loader/Loader';
 import { ErrorMessage } from '../../components/ErrorMessage';
-
-// Phone Page Component
+import { SkeletonCard } from '../../components/SkeletonCard';
+import { ModelsSortForm } from '../../components/ModelsSortForm';
+import { EmptySearch } from '../../components/EmptySearch';
 
 export const PhonePage = () => {
   const [phones, setPhones] = useState<PhoneModel[]>([]);
   const [initialPhones, setInitialPhones] = useState<PhoneModel[]>([]);
-  // eslint-disable-next-line max-len, prettier/prettier
-  const [sortedAndPaginatedPhones, setSortedAndPaginatedPhones] = useState<PhoneModel[]>([]);
+  const [sortedPhones, setSortedPhones] = useState<PhoneModel[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +23,7 @@ export const PhonePage = () => {
   const sort = searchParams.get('sort') || '';
   const page = searchParams.get('page') || '1';
   const quantity = searchParams.get('quantity') || '16';
+  const query = searchParams.get('query') || '';
 
   const handleSetCurrentPage = (newPage: number) => {
     const params = new URLSearchParams(searchParams);
@@ -56,7 +56,7 @@ export const PhonePage = () => {
         setInitialPhones(phonesData);
       } catch (e) {
         setIsLoading(false);
-        setError('Something went wrong ');
+        setError('Something went wrong');
       }
     };
 
@@ -72,15 +72,24 @@ export const PhonePage = () => {
 
     const processPhones = async () => {
       try {
-        const sortedPhones = (await modelsSortAsync(
-          initialPhones,
+        const queryTrimmed = query.trim().toLowerCase();
+        let filteredByQuery = initialPhones;
+
+        if (queryTrimmed) {
+          filteredByQuery = initialPhones.filter(phone =>
+            phone.name.toLowerCase().includes(queryTrimmed),
+          );
+        }
+
+        const processedPhones = (await modelsSortAsync(
+          filteredByQuery,
           sort,
         )) as PhoneModel[];
 
-        setSortedAndPaginatedPhones(sortedPhones);
+        setSortedPhones(processedPhones);
 
         const paginatedPhones = applyPagination(
-          sortedPhones,
+          processedPhones,
           page,
           quantity,
           setSearchParams,
@@ -91,39 +100,56 @@ export const PhonePage = () => {
         setIsLoading(false);
       } catch (e) {
         setIsLoading(false);
-        setError('Something went wrong ');
+        setError('Something went wrong');
       }
     };
 
     processPhones();
-  }, [initialPhones, sort, page, quantity, searchParams, setSearchParams]);
+  }, [
+    initialPhones,
+    sort,
+    page,
+    quantity,
+    query,
+    searchParams,
+    setSearchParams,
+  ]);
 
   const quantityNumber =
     quantity === 'all' ? initialPhones.length : Number(quantity);
+  const hasNoSearchResults = query.trim() && sortedPhones.length === 0;
 
   return (
     <>
+      <PageTop
+        titleLevel="1"
+        titleText="Mobile phones"
+        modelsAmount={sortedPhones.length}
+      />
       {isLoading ? (
-        <Loader></Loader>
+        <section className="phones-section">
+          <ModelsSortForm />
+          <SkeletonCard
+            count={
+              quantityNumber > 0 && quantityNumber <= 16 ? quantityNumber : 8
+            }
+            isGrid={true}
+          />
+        </section>
       ) : error ? (
         <ErrorMessage errorMessage={error} />
+      ) : hasNoSearchResults ? (
+        <EmptySearch message="There are no phones matching the query" />
       ) : (
-        <>
-          <PageTop
-            titleLevel="1"
-            titleText="Mobile phones"
-            modelsAmount={sortedAndPaginatedPhones.length}
-          ></PageTop>
-          <PhonesSection
-            paginatedPhones={phones}
-            fullSortedPhones={sortedAndPaginatedPhones}
-            handleSetCurrentPage={handleSetCurrentPage}
-            handleSetNextPage={handleSetNextPage}
-            handleSetPrevPage={handleSetPrevPage}
-            page={page}
-            quantity={quantityNumber}
-          />
-        </>
+        <PhonesSection
+          paginatedPhones={phones}
+          fullSortedPhones={sortedPhones}
+          handleSetCurrentPage={handleSetCurrentPage}
+          handleSetNextPage={handleSetNextPage}
+          handleSetPrevPage={handleSetPrevPage}
+          page={page}
+          quantity={quantityNumber}
+        />
       )}
     </>
   );

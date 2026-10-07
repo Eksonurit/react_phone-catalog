@@ -1,10 +1,9 @@
-/* eslint-disable max-len */
 import { ModelCard } from '../ModelCard/ModelCard';
 import styles from './ItemsSlider.module.scss';
 import { useEffect, useRef, useState } from 'react';
 import { AccessoriesModel, PhoneModel, TabletModel } from '../../types/model';
 import { Product } from '../../types/products';
-import { SkeletonCard } from '../SkeletonCard';
+import { SkeletonCardItem } from '../SkeletonCard';
 import ArrowLeft from '../../Icons/ChevronArrowLeft.svg?react';
 import ArrowRight from '../../Icons/ChevronArrowRight.svg?react';
 
@@ -92,6 +91,7 @@ export const ItemsSlider: React.FC<Props> = ({
             className={styles.button}
             onClick={handlePrev}
             disabled={isLoading || isBeginning}
+            aria-label="Previous slide"
           >
             <ArrowLeft className={styles.slider__svg} />
           </button>
@@ -99,15 +99,16 @@ export const ItemsSlider: React.FC<Props> = ({
             className={styles.button}
             onClick={handleNext}
             disabled={isLoading || isEnd}
+            aria-label="Next slide"
           >
             <ArrowRight className={styles.slider__svg} />
           </button>
         </div>
       </div>
       <ul className={styles.models} ref={listRef}>
-        {isLoading ? (
-          <SkeletonCard cards={loaderCards}></SkeletonCard>
-        ) : (
+        {isLoading &&
+          loaderCards.map((_, index) => <SkeletonCardItem key={index} />)}
+        {!isLoading &&
           models.map((model, index) => (
             <li
               key={model.id || index}
@@ -120,8 +121,7 @@ export const ItemsSlider: React.FC<Props> = ({
                 hotPrice={hotPrice}
               />
             </li>
-          ))
-        )}
+          ))}
       </ul>
     </section>
   );

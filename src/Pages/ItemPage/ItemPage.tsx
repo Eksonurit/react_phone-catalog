@@ -1,16 +1,13 @@
-/* eslint-disable prettier/prettier */
-/* eslint-disable max-len */
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { AccessoriesModel, PhoneModel, TabletModel } from '../../types/model';
-import { getAccessories, getPhones, getProducts, getTablets } from '../../api';
+import { getAccessories, getPhones, getTablets } from '../../api';
 import { useParams } from 'react-router-dom';
 import { ItemSection } from './Sections/ItemSection';
 import { ItemsSlider } from '../../components/ItemsSlider';
 import { PageTop } from '../../components/PageTop';
-import Loader from '../../components/Loader/Loader';
+import { ItemDetailsSkeleton } from '../../components/ItemDetailsSkeleton';
 import { ErrorMessage } from '../../components/ErrorMessage';
-import { Product } from '../../types/products';
-import img from '../../../public/img/product-not-found.png';
+import { ProductsContext } from '../../contexts/ProductsContext';
 import styles from './ItemPage.module.scss';
 
 interface Props {
@@ -18,54 +15,32 @@ interface Props {
   category: 'Phones' | 'Tablets' | 'Accessories';
 }
 
+type CatalogItem = PhoneModel | TabletModel | AccessoriesModel;
+
 export const ItemPage: React.FC<Props> = ({ kindOfModel, category }) => {
   const { modelId } = useParams();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
+  const { products } = useContext(ProductsContext);
 
   const loadCards = [0, 0, 0, 0];
 
-  const [currentModels, setCurrentModels] = useState<
-  PhoneModel[] | TabletModel[] | AccessoriesModel[]
-  >([]);
+  const [currentModels, setCurrentModels] = useState<CatalogItem[]>([]);
+  const [model, setModel] = useState<CatalogItem | null>(null);
+  const [youMayLikeModels, setYouMayLikeModels] = useState<CatalogItem[]>([]);
 
-  // Specific model state
-  const [model, setModel] = useState<
-  PhoneModel | TabletModel | AccessoriesModel | null
-  >(null);
-
-  const [youMayLikeModels, setYouMayLikeModels] = useState<
-  PhoneModel[] | TabletModel[] | AccessoriesModel[]
-  >([]);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const shuffleArray = (arr: any[]): any[] => {
+  const shuffleArray = <T,>(arr: T[]): T[] => {
     const newArr = [...arr];
 
     return newArr
-      .map(value => [Math.random(), value])
+      .map(value => [Math.random(), value] as const)
       .sort()
       .map(value => value[1]);
   };
 
   useEffect(() => {
-    const productData = getProducts();
-
-    productData
-      .then(product => {
-        setProducts(product);
-      })
-      // eslint-disable-next-line prettier/prettier
-      .catch(() => {
-        setError('Something went wrong ');
-      });
-  }, []);
-
-  useEffect(() => {
     setIsLoading(true);
     const fetchData = async () => {
-      setIsLoading(true);
       try {
         let data: PhoneModel[] | TabletModel[] | AccessoriesModel[] = [];
 
@@ -83,8 +58,7 @@ export const ItemPage: React.FC<Props> = ({ kindOfModel, category }) => {
 
         setCurrentModels(data);
       } catch (e) {
-        setIsLoading(false);
-        setError('Something went wrong ');
+        setError('Something went wrong');
       } finally {
         setIsLoading(false);
       }
@@ -92,11 +66,13 @@ export const ItemPage: React.FC<Props> = ({ kindOfModel, category }) => {
 
     fetchData();
   }, [category]);
+
   useEffect(() => {
-    scrollTo({
+    window.scrollTo({
       top: 0,
       behavior: 'instant',
     });
+
     if (currentModels.length > 0 && modelId) {
       const found = currentModels.find(p => p.id === modelId);
 
@@ -122,9 +98,7 @@ export const ItemPage: React.FC<Props> = ({ kindOfModel, category }) => {
     }
 
     if (modelId) {
-      const returned = modelId;
-
-      return returned
+      return modelId
         .split('-')
         .map(word => {
           if (/^\d+(gb|tb|mb)$/i.test(word)) {
@@ -139,16 +113,23 @@ export const ItemPage: React.FC<Props> = ({ kindOfModel, category }) => {
     return '';
   }, [modelId, model]);
 
+  const productNotFoundImg = `${import.meta.env.BASE_URL}img/product-not-found.png`;
+
   return (
     <>
       {isLoading ? (
-        <Loader />
+        <ItemDetailsSkeleton />
       ) : error ? (
         <ErrorMessage errorMessage={error} />
       ) : !model ? (
         <div className={styles.notfound__model}>
           <h1>Model not found</h1>
-          <img src={img} alt="" width={300} height={200} />
+          <img
+            src={productNotFoundImg}
+            alt="Product not found"
+            width={300}
+            height={200}
+          />
         </div>
       ) : (
         <>

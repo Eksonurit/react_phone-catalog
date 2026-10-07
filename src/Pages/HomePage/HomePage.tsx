@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { HeroSection } from './HeroSection/HeroSection';
+import { HeroSection } from './HeroSection';
 import { Product } from '../../types/products';
 import { getProducts } from '../../api';
 import { ItemsSlider } from '../../components/ItemsSlider';

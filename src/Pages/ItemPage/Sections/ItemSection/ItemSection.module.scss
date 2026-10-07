@@ -318,6 +318,10 @@
     border: 1px solid $icons;
 
     background-color: $white;
+
+    img[alt='favoritesNonActive'] {
+        filter: var(--icon-filter);
+    }
 }
 
 .specs__list{

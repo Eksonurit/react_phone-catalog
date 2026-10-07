@@ -48,7 +48,8 @@
 
     .footer-img {
         height: 100%;
-
+        filter: var(--logo-filter);
+        transition: filter 0.3s ease;
     }
 }
 
@@ -91,16 +92,18 @@
     }
 }
 
-.back-to-top{
+.back-to-top {
     @include smallText-DT;
 
     font-size: 12px;
     color: $secondary-color;
 
-    &__button{
+    &__button {
+        cursor: pointer;
+
         display: flex;
-    align-items: center;
-    justify-content: center;
+        align-items: center;
+        justify-content: center;
 
         width: 32px;
         height: 32px;
@@ -108,22 +111,30 @@
 
         background-color: $white;
 
-    transition: 0.5s;
+        transition: border-color 0.25s ease,
+                    background-color 0.25s ease,
+                    transform 0.2s ease,
+                    box-shadow 0.25s ease;
 
-    &-svg {
-        color: $icons;
-        rotate: -90deg;
-        transition: 0.5s;
-    }
-
-    &:hover{
-        border: 1px solid $icons;
-        transition: 0.5s;
-
-        .back-to-top__button-svg{
-            color: $primary-color;
-            transition: 0.5s;
+        &-svg {
+            rotate: -90deg;
+            color: $icons;
+            transition: color 0.25s ease;
         }
-    }
+
+        &:hover {
+            transform: translateY(-2px);
+            border-color: $primary-color;
+            background-color: $hover;
+            box-shadow: 0 4px 10px rgb(0 0 0 / 8%);
+
+            .back-to-top__button-svg {
+                color: $primary-color;
+            }
+        }
+
+        &:active {
+            transform: scale(0.92);
+        }
     }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/indent */
 import { useEffect, useState } from 'react';
 import { getAccessories } from '../../api';
 import { AccessoriesModel } from '../../types/model';
@@ -7,17 +6,17 @@ import { AccessoriesSection } from './Sections/AccessoriesSection';
 import { modelsSortAsync } from '../../utils/filterByModel';
 import { applyPagination } from '../../utils/applyPagination';
 import { PageTop } from '../../components/PageTop';
-import Loader from '../../components/Loader/Loader';
 import { ErrorMessage } from '../../components/ErrorMessage';
+import { SkeletonCard } from '../../components/SkeletonCard';
+import { ModelsSortForm } from '../../components/ModelsSortForm';
+import { EmptySearch } from '../../components/EmptySearch';
+
+type AccModel = AccessoriesModel;
 
 export const AccessoriesPage = () => {
-  const [accessories, setAccessories] = useState<AccessoriesModel[]>([]);
-  const [coreAccessories, setCoreAccessories] = useState<AccessoriesModel[]>(
-    [],
-  );
-  const [sortedAccessories, setSortedAccessories] = useState<
-    AccessoriesModel[]
-  >([]);
+  const [accessories, setAccessories] = useState<AccModel[]>([]);
+  const [coreAccessories, setCoreAccessories] = useState<AccModel[]>([]);
+  const [sortedAccessories, setSortedAccessories] = useState<AccModel[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +24,7 @@ export const AccessoriesPage = () => {
   const page = searchParams.get('page') || 1;
   const sort = searchParams.get('sort') || '';
   const quantity = searchParams.get('quantity') || '16';
+  const query = searchParams.get('query') || '';
 
   const handleSetCurrentPage = (currentPage: number) => {
     const params = new URLSearchParams(searchParams);
@@ -73,7 +73,7 @@ export const AccessoriesPage = () => {
         setCoreAccessories(accessoriesData);
       } catch (e) {
         setIsLoading(false);
-        setError('Something went wrong ');
+        setError('Something went wrong');
       }
     };
 
@@ -87,8 +87,17 @@ export const AccessoriesPage = () => {
 
     const processAccessories = async () => {
       try {
+        const queryTrimmed = query.trim().toLowerCase();
+        let filteredByQuery = coreAccessories;
+
+        if (queryTrimmed) {
+          filteredByQuery = coreAccessories.filter(item =>
+            item.name.toLowerCase().includes(queryTrimmed),
+          );
+        }
+
         const sortedAccessoriesData = (await modelsSortAsync(
-          coreAccessories,
+          filteredByQuery,
           sort,
         )) as AccessoriesModel[];
 
@@ -104,42 +113,58 @@ export const AccessoriesPage = () => {
 
         setAccessories(paginatedAccessories as AccessoriesModel[]);
         setIsLoading(false);
-        // eslint-disable-next-line @typescript-eslint/no-shadow
-      } catch (error) {
+      } catch (err) {
         setIsLoading(false);
-        setError('Something went wrong ');
+        setError('Something went wrong');
       }
     };
 
     processAccessories();
-  }, [sort, coreAccessories, page, quantity, searchParams, setSearchParams]);
+  }, [
+    sort,
+    coreAccessories,
+    page,
+    quantity,
+    query,
+    searchParams,
+    setSearchParams,
+  ]);
 
   const quantityNumber =
     quantity === 'all' ? coreAccessories.length : Number(quantity);
+  const hasNoSearchResults = query.trim() && sortedAccessories.length === 0;
 
   return (
     <>
+      <PageTop
+        modelsAmount={sortedAccessories.length}
+        titleLevel="1"
+        titleText="Accessories"
+      />
       {isLoading ? (
-        <Loader></Loader>
+        <section className="phone-section">
+          <ModelsSortForm />
+          <SkeletonCard
+            count={
+              quantityNumber > 0 && quantityNumber <= 16 ? quantityNumber : 8
+            }
+            isGrid={true}
+          />
+        </section>
       ) : error ? (
         <ErrorMessage errorMessage={error} />
+      ) : hasNoSearchResults ? (
+        <EmptySearch message="There are no accessories matching the query" />
       ) : (
-        <>
-          <PageTop
-            modelsAmount={coreAccessories.length}
-            titleLevel="1"
-            titleText="Accessories"
-          ></PageTop>
-          <AccessoriesSection
-            paginatedAccessories={accessories}
-            fullSortedAccessories={sortedAccessories}
-            handleSetCurrentPage={handleSetCurrentPage}
-            handleSetNextPage={handleSetNextPage}
-            handleSetPrevPage={handleSetPrevPage}
-            quantity={quantityNumber}
-            page={page}
-          />
-        </>
+        <AccessoriesSection
+          paginatedAccessories={accessories}
+          fullSortedAccessories={sortedAccessories}
+          handleSetCurrentPage={handleSetCurrentPage}
+          handleSetNextPage={handleSetNextPage}
+          handleSetPrevPage={handleSetPrevPage}
+          quantity={quantityNumber}
+          page={page}
+        />
       )}
     </>
   );

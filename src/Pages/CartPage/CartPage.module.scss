@@ -7,6 +7,7 @@
   flex: 1;
   align-items: center;
   justify-content: center;
+
   width: 100%;
 }
 
@@ -67,12 +68,15 @@
   padding: 24px;
   border: 1px solid $elements;
 
+  background-color: $white;
+
   &__title {
     @include h2-MB;
 
     font-size: 32px;
     color: $primary-color;
   }
+
 
   &__span {
     @include bodyText-DT;

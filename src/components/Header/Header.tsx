@@ -7,9 +7,10 @@ import favourites from '../../Icons/Favourites(HeartLike).svg';
 import cart from '../../Icons/Group17.svg';
 import cn from 'classnames';
 import { ItemsCounter } from '../ItemsCounter';
-// eslint-disable-next-line max-len
-import { FavoritesContext } from '../../contexts/FavoritesContext/FavoritesContext';
+import { FavoritesContext } from '../../contexts/FavoritesContext';
 import { CartContext } from '../../contexts/CartContext';
+import { ThemeToggle } from '../ThemeToggle';
+import { Search } from '../Search';
 
 export const Header = () => {
   const { favorites } = useContext(FavoritesContext);
@@ -22,12 +23,9 @@ export const Header = () => {
       return prev + product.quantity;
     }, 0);
   }, [cartProducts]);
+
   const handleSetIsOpen = () => {
-    if (!isOpen) {
-      setIsOpen(true);
-    } else {
-      setIsOpen(false);
-    }
+    setIsOpen(!isOpen);
   };
 
   return (
@@ -36,11 +34,11 @@ export const Header = () => {
         [styles.on__allpage]: isOpen,
       })}
     >
-      {isOpen}
       <div className={styles.header__top}>
-        <NavLink to="/">
-          <img src={logo} alt="logo-img" />
+        <NavLink to="/" className={styles.logo__link}>
+          <img src={logo} alt="logo-img" className={styles.logo__img} />
         </NavLink>
+
         <nav className={styles['nav-bar']}>
           <ul className={styles.nav__list}>
             <li className={styles['nav__list--menu-items']}>
@@ -92,57 +90,73 @@ export const Header = () => {
               </NavLink>
             </li>
           </ul>
-          <div className={styles.nav__buttons}>
-            <NavLink
-              to="/favourites"
-              className={({ isActive }) =>
-                isActive
-                  ? `${styles.icon__link} ${styles['icon__link--active']}`
-                  : styles.icon__link
-              }
-            >
-              <div className={styles.img__wrapper}>
-                <img src={favourites} alt="favourites"></img>
-                {favorites.length >= 1 && (
-                  <ItemsCounter quantity={favorites.length}></ItemsCounter>
-                )}
+
+          <div className={styles.nav__actions}>
+            <Search />
+            <div className={styles.nav__buttons}>
+              <div className={styles.toggle__wrapper}>
+                <ThemeToggle />
               </div>
-            </NavLink>
-            <NavLink
-              to="/cart"
-              className={({ isActive }) =>
-                isActive
-                  ? `${styles.icon__link} ${styles['icon__link--active']}`
-                  : styles.icon__link
-              }
-              state={{ from: pathname }}
-            >
-              <div className={styles.img__wrapper}>
-                <img src={cart} alt="cart" />
-                {cartProducts.length >= 1 && (
-                  <ItemsCounter quantity={cartCounter}></ItemsCounter>
-                )}
-              </div>
-            </NavLink>
+              <NavLink
+                to="/favourites"
+                className={({ isActive }) =>
+                  isActive
+                    ? `${styles.icon__link} ${styles['icon__link--active']}`
+                    : styles.icon__link
+                }
+                title="Favourites"
+              >
+                <div className={styles.img__wrapper}>
+                  <img src={favourites} alt="favourites" />
+                  {favorites.length >= 1 && (
+                    <ItemsCounter quantity={favorites.length} />
+                  )}
+                </div>
+              </NavLink>
+              <NavLink
+                to="/cart"
+                className={({ isActive }) =>
+                  isActive
+                    ? `${styles.icon__link} ${styles['icon__link--active']}`
+                    : styles.icon__link
+                }
+                state={{ from: pathname }}
+                title="Cart"
+              >
+                <div className={styles.img__wrapper}>
+                  <img src={cart} alt="cart" />
+                  {cartProducts.length >= 1 && (
+                    <ItemsCounter quantity={cartCounter} />
+                  )}
+                </div>
+              </NavLink>
+            </div>
           </div>
         </nav>
 
-        {!isOpen ? (
-          <button
-            className={`${styles.icon} ${styles['icon--menu']}`}
-            onClick={handleSetIsOpen}
-          ></button>
-        ) : (
-          <button
-            className={`${styles.icon} ${styles['icon--menu--cross']}`}
-            onClick={handleSetIsOpen}
-          ></button>
-        )}
+        <div className={styles.mobile__controls}>
+          <div className={styles.mobile__search}>
+            <Search />
+          </div>
+          <ThemeToggle />
+          {!isOpen ? (
+            <button
+              type="button"
+              className={`${styles.icon} ${styles['icon--menu']}`}
+              onClick={handleSetIsOpen}
+              aria-label="Open menu"
+            />
+          ) : (
+            <button
+              type="button"
+              className={`${styles.icon} ${styles['icon--menu--cross']}`}
+              onClick={handleSetIsOpen}
+              aria-label="Close menu"
+            />
+          )}
+        </div>
       </div>
-      <BurgerMenu
-        isOpen={isOpen}
-        handleSetIsOpen={handleSetIsOpen}
-      ></BurgerMenu>
+      <BurgerMenu isOpen={isOpen} handleSetIsOpen={handleSetIsOpen} />
     </header>
   );
 };
